@@ -1,6 +1,8 @@
 /test.csv
 /train.csv
 /validate.csv
+/*.npz
+
 
 .idea/**/workspace.xml
 .idea/**/tasks.xml
