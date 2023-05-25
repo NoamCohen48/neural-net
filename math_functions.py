@@ -24,19 +24,11 @@ def relu2(x):
 
 
 def relu_derivative(x, dout):
-    # np.maximum(x, 0)
     return dout * (x >= 0)
 
 
 def relu_derivative2(x, dout):
-    """
-
-    :param x:
-    :param dout: derivative to pass if weight is positive
-    :return:
-    """
-    dx = np.where(x > 0, dout, 0)
-    return dx
+    return np.where(x > 0, dout, 0)
 
 
 def softmax(x):
