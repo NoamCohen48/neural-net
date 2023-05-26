@@ -17,8 +17,8 @@ def save_model(filepath: str, weights: list[np.ndarray]) -> None:
 
 
 def load_model(filepath: str) -> list[np.ndarray]:
-    filepath = Path(filepath).with_suffix(".npz")
-    npz_file: NpzFile = np.load(filepath)
+    path = Path(filepath).with_suffix(".npz")
+    npz_file: NpzFile = np.load(path)
     return [npz_file[arr] for arr in npz_file.files]
 
 
