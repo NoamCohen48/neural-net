@@ -8,6 +8,7 @@ class Configuration:
     epochs: int
     layers: list[int]
     seed: int | None
+    save_path:str
 
     # @classmethod
     # def from_file(cls, path: Path) -> Self:
