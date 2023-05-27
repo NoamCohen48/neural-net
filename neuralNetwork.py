@@ -1,56 +1,47 @@
 import itertools
 from dataclasses import dataclass, field
-from typing import Callable
 
 import numpy as np
-from configuration import Configuration
+import numpy.random
 from numpy.random import default_rng, Generator
 
-
-@dataclass(slots=True)
-class Activation:
-    function: Callable[[np.ndarray], np.ndarray]
-    derivative: Callable[[np.ndarray, np.ndarray], np.ndarray]
-
-
-@dataclass(slots=True)
-class Layer:
-    weights: np.ndarray = field()
-    biases: np.ndarray = field()
-    input: np.ndarray | None = field(init=False, default=None)
-
-    def forward(self, input: np.ndarray):
-        self.input = input
-        return np.matmul(self.weights, self.input) + self.biases
-
-    def backward(self, output_gradient, learning_rate):
-        weights_gradient = np.matmul(output_gradient, self.input.T)
-        input_gradient = np.matmul(self.weights.T, output_gradient)
-        self.weights -= learning_rate * weights_gradient
-        self.biases -= learning_rate * output_gradient
-        return input_gradient
+from Layer import Layer, FullyConnected
+from configuration import Configuration
 
 
 @dataclass(slots=True)
 class NeuralNetwork:
     configuration: Configuration = field()
-    layers: list[np.ndarray] = field(init=False)
+    layers: list[Layer] = field(init=False)
     random_generator: Generator = field(init=False)
 
     def __post_init__(self):
-        self.random_generator = default_rng(self.configuration.seed)
+        if self.configuration.seed:
+            self.random_generator = default_rng(self.configuration.seed)
+        else:
+            seed = numpy.random.random()
+            print(f"using seed {seed}")
+            self.random_generator = default_rng(seed)
+
         for input_size, output_size in itertools.pairwise(self.configuration.layers):
-            self.layers.append(self.random_generator.normal(0, 0.4, (output_size, input_size)))
+            self.layers.append(FullyConnected(
+                self.random_generator.normal(0, 0.4, (output_size, input_size)),
+                self.random_generator.normal(0, 0.4, (output_size, 1))
+            ))
 
     def _post_processing(self, X: np.ndarray, Y: np.ndarray):
         raise NotImplemented
 
     def _forward(self, input: np.ndarray):
         for layer in self.layers:
-            input = np.matmul(layer, input)
+            input = layer.forward(input)
+        return input
 
-    def _backward(self):
-        raise NotImplemented
+    def _backward(self, output: np.ndarray, expected: np.ndarray):
+        lr = self.configuration.learning_rate
+        grad = loss_prime(expected, output)
+        for layer in reversed(self.layers):
+            grad = layer.backward(grad, lr)
 
     def train(self):
         raise NotImplemented

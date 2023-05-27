@@ -6,7 +6,7 @@ from pathlib import Path
 class Configuration:
     learning_rate: float
     epochs: int
-    layers: tuple[int]
+    layers: list[int]
     seed: int | None
 
     # @classmethod
