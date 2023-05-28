@@ -68,8 +68,22 @@ class NeuralNetwork:
 
         raise NotImplemented
 
-    def train(self):
+    def predict(self, x):
         raise NotImplemented
 
-    def predict(self):
+    def train(self, train_x, train_y):
+        for epoch in range(self.configuration.epochs):
+            error = 0
+            for x, y in zip(train_x, train_y):
+                # forward
+                output = self.predict(x)
+
+                error += loss(y, output)
+
+                # Backward
+                gradiant = loss_prime(y, output)
+
+
+
+
         raise NotImplemented
