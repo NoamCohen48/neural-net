@@ -43,8 +43,8 @@ class NeuralNetwork:
 
     def _forward(self, input: np.ndarray):
         for layer in self.layers:
-            input = layer.forward(input)
-        return input
+            output = layer.forward(input)
+        return output
 
     def _backward(self, output: np.ndarray, expected: np.ndarray):
         lr = self.configuration.learning_rate
@@ -72,22 +72,55 @@ class NeuralNetwork:
 
         raise NotImplemented
 
-    def predict(self, x):
-        raise NotImplemented
-
     def train(self, train_x, train_y):
         for epoch in range(self.configuration.epochs):
             error = 0
             for x, y in zip(train_x, train_y):
                 # forward
-                output = self.predict(x)
+                output = self._forward(x)
 
-                error += loss(y, output)
+                error += self.loss.function(y, output)
+                print(f"error at epoch {epoch}: {error}")
 
                 # Backward
-                gradiant = loss_prime(y, output)
+                self._backward(y, output)
 
+                # Save the module.
+                self._save_model(epoch)
 
+    def train_by_batch(self, train_x, train_y, batch_size):
+        for epoch in range(self.configuration.epochs):
+            error = 0
+            batch_count = 0
+            batch_error = 0
 
+            for i in range(0, len(train_x), batch_size):
+                batch_x = train_x[i:i + batch_size]
+                batch_y = train_y[i:i + batch_size]
 
-        raise NotImplemented
+                # Initialize batch error for each batch
+                batch_error = 0
+
+                for x, y in zip(batch_x, batch_y):
+                    # Forward
+                    output = self._forward(x)
+
+                    # Accumulate error for the batch
+                    batch_error += self.loss.function(y, output)
+
+                    # Backward
+                    self._backward(y, output)
+
+                # Accumulate error for the epoch
+                error += batch_error
+
+                # Print batch error
+                print(f"Batch error at epoch {epoch}, batch {batch_count}: {batch_error}")
+                batch_count += 1
+
+            # Print total error for the epoch
+            print(f"Total error at epoch {epoch}: {error}")
+
+            # Save the model.
+            self._save_model(epoch)
+
