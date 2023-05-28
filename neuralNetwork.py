@@ -70,6 +70,7 @@ class NeuralNetwork:
         train_x, train_y = self._pre_processing(train_x, train_y)
         for epoch in range(self.configuration.epochs):
             loss = 0
+            accuracy = 0
             for i, (x, y) in enumerate(zip(train_x[:200], train_y[:200])):
                 # forward
                 output = self._forward(x)
@@ -78,14 +79,14 @@ class NeuralNetwork:
                 expected = np.zeros((self.configuration.layers[-1], 1))
                 expected[int(y) - 1] = 1
                 if np.argmax(output) == int(y) - 1:
-                    loss += 1
-                # loss += nll_loss(expected, output)
+                    accuracy += 1
+                loss += nll_loss(expected, output)
 
                 # Backward
                 self._backward(output, expected)
 
             self._update()
-            print(f"loss at epoch {epoch}: {loss}")
+            print(f"#{epoch}: {loss=}, {accuracy=}")
             # Save the module.
             self._save_model(epoch)
 
