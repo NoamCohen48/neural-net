@@ -42,8 +42,9 @@ class NeuralNetwork:
         return X, Y
 
     def _forward(self, input: np.ndarray):
+        output = input
         for layer in self.layers:
-            output = layer.forward(input)
+            output = layer.forward(output)
         return output
 
     def _backward(self, output: np.ndarray, expected: np.ndarray):
