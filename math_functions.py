@@ -33,7 +33,7 @@ def relu_derivative2(x, dout):
 
 def softmax(x):
     ex = np.exp(x)
-    return ex / np.sum(ex)
+    return ex / np.sum(ex, axis=0)
 
 
 def mean_squared_error(y_true, y_pred):

@@ -22,6 +22,7 @@ def read_file2(filepath) -> tuple[np.ndarray, np.ndarray]:
 
 
 def save_arrays(filepath: Path, weights: list[np.ndarray]) -> None:
+    filepath.parent.mkdir(parents=True, exist_ok=True)
     np.savez(filepath.with_suffix(""), *weights)
 
 
@@ -32,5 +33,5 @@ def load_arrays(filepath: Path) -> list[np.ndarray]:
 
 if __name__ == '__main__':
     # res = read_file("train.csv")
-    save_arrays(Path("temp"), [np.arange(10), np.arange(20)])
-    pprint(load_arrays("temp"))
+    save_arrays(Path("test", "epoch0"), [np.arange(10), np.arange(20)])
+    pprint(load_arrays(Path("temp")))

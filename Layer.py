@@ -54,7 +54,7 @@ class FullyConnected(Layer):
 
     def forward(self, input: np.ndarray):
         self.input = input
-        return np.matmul(self.weights, self.input) + self.biases
+        return np.matmul(self.weights, input) + self.biases
 
     def backward(self, output_gradient, learning_rate):
         weights_gradient = np.matmul(output_gradient, self.input.T)

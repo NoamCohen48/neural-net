@@ -10,7 +10,7 @@ from numpy.random import default_rng, Generator
 from csv_manager import save_arrays, load_arrays
 from Layer import Layer, FullyConnected, Loss
 from configuration import Configuration
-from math_functions import mean_squared_error, mean_squared_error_derivative
+from math_functions import mean_squared_error, mean_squared_error_derivative, softmax
 
 
 # https://github.com/TheIndependentCode/Neural-Network/blob/master/network.py#L7
@@ -38,8 +38,10 @@ class NeuralNetwork:
 
         self.loss = Loss(mean_squared_error, mean_squared_error_derivative)
 
-    def _post_processing(self, X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        return X, Y
+    def _pre_processing(self, X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        X_new = X.reshape(*X.shape, 1)
+        Y_new = Y.reshape(*Y.shape, 1)
+        return X_new, Y_new
 
     def _forward(self, input: np.ndarray):
         output = input
@@ -79,20 +81,23 @@ class NeuralNetwork:
             layer.load(model.pop)
 
     def train(self, train_x, train_y):
+        train_x, train_y = self._pre_processing(train_x, train_y)
         for epoch in range(self.configuration.epochs):
             error = 0
-            for x, y in zip(train_x, train_y):
+            for i, (x, y) in enumerate(zip(train_x[:100], train_y[:100])):
                 # forward
                 output = self._forward(x)
+                output = softmax(output)
 
                 error += self.loss.function(y, output)
-                print(f"error at epoch {epoch}: {error}")
 
                 # Backward
                 self._backward(y, output)
 
-                # Save the module.
-                self._save_model(epoch)
+            print(f"error at epoch {epoch}: {error}")
+            # Save the module.
+            self._save_model(epoch)
+
 
     def train_by_batch(self, train_x, train_y, batch_size):
         for epoch in range(self.configuration.epochs):

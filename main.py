@@ -6,7 +6,7 @@ from neuralNetwork import NeuralNetwork
 def main():
     configuration = Configuration(0.05, 20, (3072, 1000, 200, 10), 30, "test")
     model = NeuralNetwork(configuration)
-    X, Y = read_file2("data/test.csv")
+    X, Y = read_file2("data/train.csv")
     model.train(X, Y)
 
 
