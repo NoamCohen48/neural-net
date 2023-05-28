@@ -8,9 +8,9 @@ import numpy.random
 from numpy.random import default_rng, Generator
 
 from csv_manager import save_arrays, load_arrays
-from Layer import Layer, FullyConnected, Loss
+from Layer import Layer, FullyConnected, Loss, Activation
 from configuration import Configuration
-from math_functions import mean_squared_error, mean_squared_error_derivative, softmax
+from math_functions import mean_squared_error, mean_squared_error_derivative, softmax, relu, relu_derivative
 
 
 # https://github.com/TheIndependentCode/Neural-Network/blob/master/network.py#L7
@@ -35,6 +35,9 @@ class NeuralNetwork:
                 self.random_generator.normal(0, 0.4, (output_size, input_size)),
                 self.random_generator.normal(0, 0.4, (output_size, 1))
             ))
+            self.layers.append(
+                Activation(relu, relu_derivative)
+            )
 
         self.loss = Loss(mean_squared_error, mean_squared_error_derivative)
 
@@ -84,20 +87,23 @@ class NeuralNetwork:
         train_x, train_y = self._pre_processing(train_x, train_y)
         for epoch in range(self.configuration.epochs):
             error = 0
-            for i, (x, y) in enumerate(zip(train_x[:100], train_y[:100])):
+            for i, (x, y) in enumerate(zip(train_x, train_y)):
                 # forward
                 output = self._forward(x)
                 output = softmax(output)
 
-                error += self.loss.function(y, output)
+                # calculating error
+                y_true = np.zeros((self.configuration.layers[-1], 1))
+                y_true[int(y) - 1] = 1
+                error += self.loss.function(y_true, output)[0]
 
                 # Backward
+                # TODO: switch to beckward and update implemintation
                 self._backward(y, output)
 
             print(f"error at epoch {epoch}: {error}")
             # Save the module.
             self._save_model(epoch)
-
 
     def train_by_batch(self, train_x, train_y, batch_size):
         for epoch in range(self.configuration.epochs):
@@ -134,4 +140,3 @@ class NeuralNetwork:
 
             # Save the model.
             self._save_model(epoch)
-

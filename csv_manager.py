@@ -33,5 +33,6 @@ def load_arrays(filepath: Path) -> list[np.ndarray]:
 
 if __name__ == '__main__':
     # res = read_file("train.csv")
-    save_arrays(Path("test", "epoch0"), [np.arange(10), np.arange(20)])
-    pprint(load_arrays(Path("temp")))
+    x = load_arrays(Path("test", "epoch17"))
+    y = load_arrays(Path("test", "epoch9"))
+    print("ds")
