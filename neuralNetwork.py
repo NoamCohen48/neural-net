@@ -10,7 +10,7 @@ from numpy.random import default_rng, Generator
 from csv_manager import save_arrays, load_arrays
 from Layer import Layer, FullyConnected, Loss, Activation
 from configuration import Configuration
-from math_functions import mean_squared_error, mean_squared_error_derivative, softmax, relu, relu_derivative
+from math_functions import *
 
 
 # https://github.com/TheIndependentCode/Neural-Network/blob/master/network.py#L7
@@ -36,12 +36,12 @@ class NeuralNetwork:
                 self.random_generator.normal(0, 0.01, (output_size, 1))
             ))
             self.layers.append(
-                Activation(relu, relu_derivative)
+                Activation(relu, relu_derivative2)
             )
 
         self.layers.pop()
 
-        self.loss = Loss(mean_squared_error, mean_squared_error_derivative)
+        self.loss = Loss(nll_loss, mean_squared_error_derivative)
 
     def _pre_processing(self, X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         X_new = X.reshape(*X.shape, 1)
@@ -52,12 +52,13 @@ class NeuralNetwork:
         output = input
         for layer in self.layers:
             output = layer.forward(output)
-        return output
+        return softmax(output)
 
     def _backward(self, output: np.ndarray, expected: np.ndarray):
-        grad = self.loss.derivative(expected, output)
+        input = output - expected
+        # grad = self.loss.derivative(expected, output)
         for layer in reversed(self.layers):
-            grad = layer.backward(grad)
+            input = layer.backward(input)
 
     def _update(self):
         lr = self.configuration.learning_rate
@@ -65,24 +66,26 @@ class NeuralNetwork:
             layer.update(lr)
 
     def train(self, train_x, train_y):
+        print("started training")
         train_x, train_y = self._pre_processing(train_x, train_y)
         for epoch in range(self.configuration.epochs):
-            error = 0
-            for i, (x, y) in enumerate(zip(train_x[:2000], train_y[:2000])):
+            loss = 0
+            for i, (x, y) in enumerate(zip(train_x[:200], train_y[:200])):
                 # forward
                 output = self._forward(x)
-                output = softmax(output)
 
                 # calculating error
-                y_true = np.zeros((self.configuration.layers[-1], 1))
-                y_true[int(y) - 1] = 1
-                error += self.loss.function(y_true, output)[0]
+                expected = np.zeros((self.configuration.layers[-1], 1))
+                expected[int(y) - 1] = 1
+                if np.argmax(output) == int(y) - 1:
+                    loss += 1
+                # loss += nll_loss(expected, output)
 
                 # Backward
-                self._backward(y, output)
+                self._backward(output, expected)
 
             self._update()
-            print(f"error at epoch {epoch}: {error}")
+            print(f"loss at epoch {epoch}: {loss}")
             # Save the module.
             self._save_model(epoch)
 

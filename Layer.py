@@ -73,9 +73,9 @@ class FullyConnected(Layer):
         return np.dot(self.weights, input) + self.biases
 
     def backward(self, output_gradient):
-        self.weights_gradient += np.matmul(output_gradient, self.input.T)
+        self.weights_gradient += np.dot(output_gradient, self.input.T)
         self.biases_gradient += output_gradient
-        return np.matmul(self.weights.T, output_gradient)
+        return np.dot(self.weights.T, output_gradient)
 
     def update(self, learning_rate):
         self.weights -= learning_rate * self.weights_gradient
