@@ -8,7 +8,10 @@ class Layer:
     def forward(self, input: np.ndarray):
         raise NotImplemented
 
-    def backward(self, output_gradient, learning_rate):
+    def backward(self, output_gradient):
+        raise NotImplemented
+
+    def update(self, learning_rate):
         raise NotImplemented
 
     def save(self, push: Callable[[np.ndarray], None]) -> None:
@@ -35,8 +38,11 @@ class Activation(Layer):
         self.input = input
         return self.function(input)
 
-    def backward(self, output_gradient, learning_rate):
+    def backward(self, output_gradient):
         return self.derivative(self.input, output_gradient)
+
+    def update(self, learning_rate):
+        return
 
     def save(self, push: Callable[[np.ndarray], None]) -> None:
         return
@@ -50,18 +56,32 @@ class FullyConnected(Layer):
     weights: np.ndarray = field()
     biases: np.ndarray = field()
 
+    weights_gradient: np.ndarray = field(init=False)
+    biases_gradient: np.ndarray = field(init=False)
+
     input: np.ndarray | None = field(init=False, default=None)
+
+    def __post_init__(self):
+        self._init_gradients()
+
+    def _init_gradients(self):
+        self.weights_gradient = np.zeros(self.weights.shape)
+        self.biases_gradient = np.zeros(self.biases.shape)
 
     def forward(self, input: np.ndarray):
         self.input = input
-        return np.matmul(self.weights, input) + self.biases
+        return np.dot(self.weights, input) + self.biases
 
-    def backward(self, output_gradient, learning_rate):
-        weights_gradient = np.matmul(output_gradient, self.input.T)
-        input_gradient = np.matmul(self.weights.T, output_gradient)
-        self.weights -= learning_rate * weights_gradient
-        self.biases -= learning_rate * output_gradient
-        return input_gradient
+    def backward(self, output_gradient):
+        self.weights_gradient += np.matmul(output_gradient, self.input.T)
+        self.biases_gradient += output_gradient
+        return np.matmul(self.weights.T, output_gradient)
+
+    def update(self, learning_rate):
+        self.weights -= learning_rate * self.weights_gradient
+        self.biases -= learning_rate * self.biases_gradient
+
+        self._init_gradients()
 
     def save(self, push: Callable[[np.ndarray], None]) -> None:
         push(self.weights)

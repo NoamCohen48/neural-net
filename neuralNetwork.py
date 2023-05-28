@@ -26,18 +26,20 @@ class NeuralNetwork:
         if self.configuration.seed:
             self.random_generator = default_rng(self.configuration.seed)
         else:
-            seed = numpy.random.randint()
+            seed = numpy.random.randint(100)
             print(f"using seed {seed}")
             self.random_generator = default_rng(seed)
 
         for input_size, output_size in itertools.pairwise(self.configuration.layers):
             self.layers.append(FullyConnected(
-                self.random_generator.normal(0, 0.4, (output_size, input_size)),
-                self.random_generator.normal(0, 0.4, (output_size, 1))
+                self.random_generator.normal(0, 0.01, (output_size, input_size)),
+                self.random_generator.normal(0, 0.01, (output_size, 1))
             ))
             self.layers.append(
                 Activation(relu, relu_derivative)
             )
+
+        self.layers.pop()
 
         self.loss = Loss(mean_squared_error, mean_squared_error_derivative)
 
@@ -53,10 +55,36 @@ class NeuralNetwork:
         return output
 
     def _backward(self, output: np.ndarray, expected: np.ndarray):
-        lr = self.configuration.learning_rate
         grad = self.loss.derivative(expected, output)
         for layer in reversed(self.layers):
-            grad = layer.backward(grad, lr)
+            grad = layer.backward(grad)
+
+    def _update(self):
+        lr = self.configuration.learning_rate
+        for layer in self.layers:
+            layer.update(lr)
+
+    def train(self, train_x, train_y):
+        train_x, train_y = self._pre_processing(train_x, train_y)
+        for epoch in range(self.configuration.epochs):
+            error = 0
+            for i, (x, y) in enumerate(zip(train_x[:2000], train_y[:2000])):
+                # forward
+                output = self._forward(x)
+                output = softmax(output)
+
+                # calculating error
+                y_true = np.zeros((self.configuration.layers[-1], 1))
+                y_true[int(y) - 1] = 1
+                error += self.loss.function(y_true, output)[0]
+
+                # Backward
+                self._backward(y, output)
+
+            self._update()
+            print(f"error at epoch {epoch}: {error}")
+            # Save the module.
+            self._save_model(epoch)
 
     def _save_model(self, epoch_number: int):
         path = Path(self.configuration.save_path, f"epoch{epoch_number}")
@@ -82,28 +110,6 @@ class NeuralNetwork:
         model = load_arrays(path.absolute())
         for layer in self.layers:
             layer.load(model.pop)
-
-    def train(self, train_x, train_y):
-        train_x, train_y = self._pre_processing(train_x, train_y)
-        for epoch in range(self.configuration.epochs):
-            error = 0
-            for i, (x, y) in enumerate(zip(train_x, train_y)):
-                # forward
-                output = self._forward(x)
-                output = softmax(output)
-
-                # calculating error
-                y_true = np.zeros((self.configuration.layers[-1], 1))
-                y_true[int(y) - 1] = 1
-                error += self.loss.function(y_true, output)[0]
-
-                # Backward
-                # TODO: switch to beckward and update implemintation
-                self._backward(y, output)
-
-            print(f"error at epoch {epoch}: {error}")
-            # Save the module.
-            self._save_model(epoch)
 
     def train_by_batch(self, train_x, train_y, batch_size):
         for epoch in range(self.configuration.epochs):

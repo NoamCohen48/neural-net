@@ -16,7 +16,7 @@ def read_file(filepath) -> tuple[np.ndarray, np.ndarray]:
 def read_file2(filepath) -> tuple[np.ndarray, np.ndarray]:
     with open(filepath, 'r') as dest_f:
         data_iter = csv.reader(dest_f, delimiter=",", quotechar='"')
-        data = np.asarray([[item.replace("?", "NAN") for item in row] for row in data_iter], dtype=np.float32)
+        data = np.asarray([[item.replace("?", "NAN") for item in row] for row in data_iter], dtype=np.longdouble)
         y, x = np.hsplit(data, [1])
     return x, y
 

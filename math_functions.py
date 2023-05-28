@@ -32,16 +32,25 @@ def relu_derivative2(x, dout):
 
 
 def softmax(x):
-    ex = np.exp(x)
-    return ex / np.sum(ex, axis=0)
+    x_max = np.max(x)
+    sub = np.subtract(x, x_max)
+    ex = np.exp(sub)
+    return ex / np.sum(ex)
 
+def softmax2(x):
+    ex = np.exp(x)
+    sum = np.sum(ex, axis=0)
+    if sum == 0:
+        return np.zeros()
+    return ex / sum
 
 def mean_squared_error(y_true, y_pred):
     return np.square(np.subtract(y_true, y_pred)).mean(axis=0)
 
 
 def mean_squared_error_derivative(y_true, y_pred):
-    return 2 * (y_pred - y_true) / np.size(y_true)
+    # return (2 * (y_pred - y_true)) / np.size(y_true)
+    return 2 / np.size(y_true) * (y_pred - y_true)
 
 
 def binary_cross_entropy(y_true, y_pred):
