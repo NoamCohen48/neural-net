@@ -11,6 +11,12 @@ class Layer:
     def backward(self, output_gradient, learning_rate):
         raise NotImplemented
 
+    def save(self, push: Callable[[np.ndarray], None]) -> None:
+        raise NotImplemented
+
+    def load(self, pop: Callable[[], np.ndarray]) -> None:
+        raise NotImplemented
+
 
 @dataclass(slots=True)
 class Loss:
@@ -32,6 +38,12 @@ class Activation(Layer):
     def backward(self, output_gradient, learning_rate):
         return self.derivative(self.input, output_gradient)
 
+    def save(self, push: Callable[[np.ndarray], None]) -> None:
+        return
+
+    def load(self, pop: Callable[[], np.ndarray]) -> None:
+        return
+
 
 @dataclass(slots=True)
 class FullyConnected(Layer):
@@ -50,3 +62,11 @@ class FullyConnected(Layer):
         self.weights -= learning_rate * weights_gradient
         self.biases -= learning_rate * output_gradient
         return input_gradient
+
+    def save(self, push: Callable[[np.ndarray], None]) -> None:
+        push(self.weights)
+        push(self.biases)
+
+    def load(self, pop: Callable[[], np.ndarray]) -> None:
+        self.biases = pop()
+        self.weights = pop()

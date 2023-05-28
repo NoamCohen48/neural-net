@@ -12,17 +12,16 @@ def read_file(filepath) -> tuple[np.ndarray, np.ndarray]:
     return x, y
 
 
-def save_arrays(filepath: str, weights: list[np.ndarray]) -> None:
-    np.savez(filepath, *weights)
+def save_arrays(filepath: Path, weights: list[np.ndarray]) -> None:
+    np.savez(filepath.with_suffix(""), *weights)
 
 
-def load_arrays(filepath: str) -> list[np.ndarray]:
-    path = Path(filepath).with_suffix(".npz")
-    npz_file: NpzFile = np.load(path)
+def load_arrays(filepath: Path) -> list[np.ndarray]:
+    npz_file: NpzFile = np.load(filepath.with_suffix(".npz"))
     return [npz_file[arr] for arr in npz_file.files]
 
 
 if __name__ == '__main__':
     # res = read_file("train.csv")
-    save_arrays("temp", [np.arange(10), np.arange(20)])
+    save_arrays(Path("temp"), [np.arange(10), np.arange(20)])
     pprint(load_arrays("temp"))

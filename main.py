@@ -1,6 +1,8 @@
-def main():
-    pass
+def main(l:list[int]):
+    l.pop()
 
 
 if __name__ == '__main__':
-    main()
+    x = [1, 2, 3]
+    main(x)
+    print(x)

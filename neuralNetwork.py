@@ -7,7 +7,7 @@ import numpy as np
 import numpy.random
 from numpy.random import default_rng, Generator
 
-from csv_manager import save_arrays
+from csv_manager import save_arrays, load_arrays
 from Layer import Layer, FullyConnected, Loss
 from configuration import Configuration
 from math_functions import mean_squared_error, mean_squared_error_derivative
@@ -20,7 +20,7 @@ class NeuralNetwork:
     configuration: Configuration = field()
     layers: list[Layer] = field(init=False)
     random_generator: Generator = field(init=False)
-    loss:Loss = field(init=False)
+    loss: Loss = field(init=False)
 
     def __post_init__(self):
         if self.configuration.seed:
@@ -54,7 +54,10 @@ class NeuralNetwork:
 
     def _save_model(self, epoch_number: int):
         path = Path(self.configuration.save_path, f"epoch{epoch_number}")
-        raise NotImplemented
+        model = []
+        for layer in self.layers:
+            layer.save(model.append)
+        save_arrays(path, model)
 
     def _load_model(self, epoch_number: int | None = None):
         if epoch_number:
@@ -64,13 +67,15 @@ class NeuralNetwork:
             path = Path(self.configuration.save_path)
             files = path.glob("*.npz")
 
-            def extract_number(f:Path):
+            def extract_number(f: Path):
                 s = re.findall("\d+$", f.name)
                 return int(s[0]) if s else -1, f
 
             epoch_number, path = max(files, key=extract_number)
 
-        raise NotImplemented
+        model = load_arrays(path.absolute())
+        for layer in self.layers:
+            layer.load(model.pop)
 
     def train(self):
         raise NotImplemented
