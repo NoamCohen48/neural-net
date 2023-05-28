@@ -1,7 +1,7 @@
-/test.csv
-/train.csv
-/validate.csv
-/*.npz
+**/test.csv
+**/train.csv
+**/validate.csv
+**/*.npz
 
 
 .idea/**/workspace.xml

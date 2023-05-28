@@ -8,7 +8,7 @@ def read_file(filepath) -> tuple[np.ndarray, np.ndarray]:
     # reading file to numpy array
     data = np.genfromtxt(filepath, delimiter=',', missing_values="?")
     # splitting data
-    x, y = np.hsplit(data, [1])
+    y, x = np.hsplit(data, [1])
     return x, y
 
 

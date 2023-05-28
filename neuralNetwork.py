@@ -18,7 +18,7 @@ from math_functions import mean_squared_error, mean_squared_error_derivative
 @dataclass(slots=True)
 class NeuralNetwork:
     configuration: Configuration = field()
-    layers: list[Layer] = field(init=False)
+    layers: list[Layer] = field(init=False, default_factory=list)
     random_generator: Generator = field(init=False)
     loss: Loss = field(init=False)
 
@@ -26,7 +26,7 @@ class NeuralNetwork:
         if self.configuration.seed:
             self.random_generator = default_rng(self.configuration.seed)
         else:
-            seed = numpy.random.random()
+            seed = numpy.random.randint()
             print(f"using seed {seed}")
             self.random_generator = default_rng(seed)
 
