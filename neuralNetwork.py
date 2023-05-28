@@ -8,8 +8,9 @@ import numpy.random
 from numpy.random import default_rng, Generator
 
 from csv_manager import save_arrays
-from Layer import Layer, FullyConnected
+from Layer import Layer, FullyConnected, Loss
 from configuration import Configuration
+from math_functions import mean_squared_error, mean_squared_error_derivative
 
 
 # https://github.com/TheIndependentCode/Neural-Network/blob/master/network.py#L7
@@ -19,6 +20,7 @@ class NeuralNetwork:
     configuration: Configuration = field()
     layers: list[Layer] = field(init=False)
     random_generator: Generator = field(init=False)
+    loss:Loss = field(init=False)
 
     def __post_init__(self):
         if self.configuration.seed:
@@ -34,8 +36,10 @@ class NeuralNetwork:
                 self.random_generator.normal(0, 0.4, (output_size, 1))
             ))
 
+        self.loss = Loss(mean_squared_error, mean_squared_error_derivative)
+
     def _post_processing(self, X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        raise NotImplemented
+        return X, Y
 
     def _forward(self, input: np.ndarray):
         for layer in self.layers:
@@ -44,7 +48,7 @@ class NeuralNetwork:
 
     def _backward(self, output: np.ndarray, expected: np.ndarray):
         lr = self.configuration.learning_rate
-        grad = loss_prime(expected, output)
+        grad = self.loss.derivative(expected, output)
         for layer in reversed(self.layers):
             grad = layer.backward(grad, lr)
 
@@ -52,7 +56,7 @@ class NeuralNetwork:
         path = Path(self.configuration.save_path, f"epoch{epoch_number}")
         raise NotImplemented
 
-    def _load_model(self, epoch_number: int | None):
+    def _load_model(self, epoch_number: int | None = None):
         if epoch_number:
             path = Path(self.configuration.save_path, f"epoch{epoch_number}")
         else:

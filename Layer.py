@@ -13,6 +13,12 @@ class Layer:
 
 
 @dataclass(slots=True)
+class Loss:
+    function: Callable[[np.ndarray, np.ndarray], np.ndarray]
+    derivative: Callable[[np.ndarray, np.ndarray], np.ndarray]
+
+
+@dataclass(slots=True)
 class Activation(Layer):
     function: Callable[[np.ndarray], np.ndarray]
     derivative: Callable[[np.ndarray, np.ndarray], np.ndarray]

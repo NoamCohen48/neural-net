@@ -36,5 +36,17 @@ def softmax(x):
     return ex / np.sum(ex)
 
 
-def mean_squared_error(x, y):
-    return np.square(np.subtract(x, y)).mean(axis=0)
+def mean_squared_error(y_true, y_pred):
+    return np.square(np.subtract(y_true, y_pred)).mean(axis=0)
+
+
+def mean_squared_error_derivative(y_true, y_pred):
+    return 2 * (y_pred - y_true) / np.size(y_true)
+
+
+def binary_cross_entropy(y_true, y_pred):
+    return np.mean(-y_true * np.log(y_pred) - (1 - y_true) * np.log(1 - y_pred))
+
+
+def binary_cross_entropy_derivative(y_true, y_pred):
+    return ((1 - y_true) / (1 - y_pred) - y_true / y_pred) / np.size(y_true)
