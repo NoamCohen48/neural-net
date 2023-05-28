@@ -1,3 +1,4 @@
+import csv
 from pathlib import Path
 from pprint import pprint
 import numpy as np
@@ -9,6 +10,14 @@ def read_file(filepath) -> tuple[np.ndarray, np.ndarray]:
     data = np.genfromtxt(filepath, delimiter=',', missing_values="?")
     # splitting data
     y, x = np.hsplit(data, [1])
+    return x, y
+
+
+def read_file2(filepath) -> tuple[np.ndarray, np.ndarray]:
+    with open(filepath, 'r') as dest_f:
+        data_iter = csv.reader(dest_f, delimiter=",", quotechar='"')
+        data = np.asarray([[item.replace("?", "NAN") for item in row] for row in data_iter], dtype=np.float32)
+        y, x = np.hsplit(data, [1])
     return x, y
 
 
