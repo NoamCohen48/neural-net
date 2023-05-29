@@ -23,6 +23,10 @@ def relu2(x):
     return np.maximum(x, 0, x)
 
 
+def relu3(x):
+    return np.maximum(x, 0)
+
+
 def relu_derivative(x, dout):
     return dout * (x >= 0)
 
@@ -65,5 +69,10 @@ def binary_cross_entropy_derivative(y_true, y_pred):
 
 def nll_loss(y_true, y_pred):
     np.clip(y_pred, 1e-10, 1. - 1e-10)
+    loss = -np.sum(y_true * np.log(y_pred))
+    return loss
+
+def nll_loss_matrix(y_true, y_pred):
+    # np.clip(y_pred, 1e-10, 1. - 1e-10)
     loss = -np.sum(y_true * np.log(y_pred))
     return loss

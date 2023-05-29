@@ -8,7 +8,7 @@ import numpy.random
 from numpy.random import default_rng, Generator
 
 from csv_manager import save_arrays, load_arrays
-from Layer import Layer, FullyConnected, Loss, Activation
+from Layer import Layer, FullyConnected, Loss, Activation, Softmax
 from configuration import Configuration
 from math_functions import *
 
@@ -33,20 +33,21 @@ class NeuralNetwork:
         for input_size, output_size in itertools.pairwise(self.configuration.layers):
             self.layers.append(FullyConnected(
                 self.random_generator.normal(0, 0.01, (output_size, input_size)),
-                self.random_generator.normal(0, 0.01, (output_size, 1))
+                self.random_generator.normal(0, 0.01, (output_size,))
             ))
             self.layers.append(
                 Activation(relu, relu_derivative2)
             )
 
         self.layers.pop()
+        self.layers.append(Softmax())
 
         self.loss = Loss(nll_loss, mean_squared_error_derivative)
 
     def _pre_processing(self, X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        X_new = X.reshape(*X.shape, 1)
-        Y_new = Y.reshape(*Y.shape, 1)
-        return X_new, Y_new
+        # X_new = X.reshape(*X.shape, 1)
+        Y_new = Y.reshape(-1).astype(int)
+        return X, Y_new
 
     def _forward(self, input: np.ndarray):
         output = input
@@ -55,8 +56,7 @@ class NeuralNetwork:
         return softmax(output)
 
     def _backward(self, output: np.ndarray, expected: np.ndarray):
-        input = output - expected
-        # grad = self.loss.derivative(expected, output)
+        input = expected
         for layer in reversed(self.layers):
             input = layer.backward(input)
 
@@ -65,26 +65,28 @@ class NeuralNetwork:
         for layer in self.layers:
             layer.update(lr)
 
+    def _accuracy(self, predicted, expected):
+        predicted_labels = np.argmax(predicted, axis=1)
+        expected_labels = np.argmax(expected, axis=1)
+        return np.mean(predicted_labels == expected_labels)
+
     def train(self, train_x, train_y):
         print("started training")
         train_x, train_y = self._pre_processing(train_x, train_y)
         for epoch in range(self.configuration.epochs):
-            loss = 0
-            accuracy = 0
-            for i, (x, y) in enumerate(zip(train_x[:200], train_y[:200])):
-                # forward
-                output = self._forward(x)
+            batch_size = 200
+            batch_x, batch_y = train_x[:batch_size], train_y[:batch_size]
+            # forward
+            prediction = self._forward(batch_x)
 
-                # calculating error
-                expected = np.zeros((self.configuration.layers[-1], 1))
-                expected[int(y) - 1] = 1
-                if np.argmax(output) == int(y) - 1:
-                    accuracy += 1
-                loss += nll_loss(expected, output)
+            # calculating error
+            expected = np.eye(self.configuration.layers[-1])[batch_y - 1]
 
-                # Backward
-                self._backward(output, expected)
+            loss = nll_loss_matrix(expected, prediction)
+            accuracy = self._accuracy(prediction, expected)
 
+            # Backward
+            self._backward(prediction, expected)
             self._update()
             print(f"#{epoch}: {loss=}, {accuracy=}")
             # Save the module.

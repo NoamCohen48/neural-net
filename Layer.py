@@ -3,6 +3,8 @@ from typing import Callable
 
 import numpy as np
 
+import math_functions
+
 
 class Layer:
     def forward(self, input: np.ndarray):
@@ -20,6 +22,28 @@ class Layer:
     def load(self, pop: Callable[[], np.ndarray]) -> None:
         raise NotImplemented
 
+
+@dataclass(slots=True)
+class Softmax(Layer):
+    input: np.ndarray | None = field(init=False, default=None)
+    def forward(self, input: np.ndarray):
+        self.input = input
+
+        probs = np.exp(input - np.max(input, axis=1, keepdims=True))
+        probs /= np.sum(probs, axis=1, keepdims=True)
+        return probs
+
+    def backward(self, expected):
+        return self.input - expected
+
+    def update(self, learning_rate):
+        return
+
+    def save(self, push: Callable[[np.ndarray], None]) -> None:
+        return
+
+    def load(self, pop: Callable[[], np.ndarray]) -> None:
+        return
 
 @dataclass(slots=True)
 class Loss:
@@ -70,12 +94,12 @@ class FullyConnected(Layer):
 
     def forward(self, input: np.ndarray):
         self.input = input
-        return np.dot(self.weights, input) + self.biases
+        return np.dot(input, self.weights.T) + self.biases.T
 
     def backward(self, output_gradient):
-        self.weights_gradient += np.dot(output_gradient, self.input.T)
-        self.biases_gradient += output_gradient
-        return np.dot(self.weights.T, output_gradient)
+        self.weights_gradient += np.dot(output_gradient.T, self.input)
+        self.biases_gradient += np.sum(output_gradient, axis=0)
+        return np.dot(output_gradient, self.weights)
 
     def update(self, learning_rate):
         self.weights -= learning_rate * self.weights_gradient
