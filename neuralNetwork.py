@@ -53,7 +53,7 @@ class NeuralNetwork:
         output = input
         for layer in self.layers:
             output = layer.forward(output)
-        return softmax(output)
+        return output
 
     def _backward(self, output: np.ndarray, expected: np.ndarray):
         input = expected
@@ -68,7 +68,7 @@ class NeuralNetwork:
     def _accuracy(self, predicted, expected):
         predicted_labels = np.argmax(predicted, axis=1)
         expected_labels = np.argmax(expected, axis=1)
-        return np.mean(predicted_labels == expected_labels)
+        return np.sum(predicted_labels == expected_labels)
 
     def train(self, train_x, train_y):
         print("started training")
@@ -78,23 +78,27 @@ class NeuralNetwork:
             loss = 0
             accuracy = 0
             for bach_start in range(0, train_x.shape[0], batch_size):
+                # ---- creating batch ----
                 batch_end = bach_start + batch_size
                 batch_x, batch_y = train_x[bach_start:batch_end], train_y[bach_start:batch_end]
 
-                # forward
-                prediction = self._forward(batch_x)
+                # ---- forward ----
+                prediction = batch_x
+                for layer in self.layers:
+                    prediction = layer.forward(prediction)
 
-                # calculating error
+                # ---- error ----
                 expected = np.eye(self.configuration.layers[-1])[batch_y - 1]
-
                 loss += nll_loss_matrix(expected, prediction)
                 accuracy += self._accuracy(prediction, expected)
 
-                # Backward
-                self._backward(prediction, expected)
-                self._update()
+                # ---- backward ----
+                grad = expected
+                for layer in reversed(self.layers):
+                    grad = layer.backward(grad)
+                    layer.update(self.configuration.learning_rate)
 
-            print(f"#{epoch}: {loss=}, {accuracy=}")
+            print(f"#{epoch}: {loss=}, accuracy={accuracy/train_x.shape[0]}")
             # Save the module.
             # self._save_model(epoch)
 
