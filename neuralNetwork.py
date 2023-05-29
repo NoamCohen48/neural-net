@@ -73,9 +73,12 @@ class NeuralNetwork:
     def train(self, train_x, train_y):
         print("started training")
         train_x, train_y = self._pre_processing(train_x, train_y)
+        batch_size = 200
         for epoch in range(self.configuration.epochs):
-            batch_size = 200
-            batch_x, batch_y = train_x[:batch_size], train_y[:batch_size]
+            start = epoch * batch_size
+            end = start + batch_size
+            batch_x, batch_y = train_x[start:end], train_y[start:end]
+
             # forward
             prediction = self._forward(batch_x)
 
@@ -90,7 +93,7 @@ class NeuralNetwork:
             self._update()
             print(f"#{epoch}: {loss=}, {accuracy=}")
             # Save the module.
-            self._save_model(epoch)
+            # self._save_model(epoch)
 
     def _save_model(self, epoch_number: int):
         path = Path(self.configuration.save_path, f"epoch{epoch_number}")
