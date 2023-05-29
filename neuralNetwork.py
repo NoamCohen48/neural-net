@@ -75,22 +75,25 @@ class NeuralNetwork:
         train_x, train_y = self._pre_processing(train_x, train_y)
         batch_size = 200
         for epoch in range(self.configuration.epochs):
-            start = epoch * batch_size
-            end = start + batch_size
-            batch_x, batch_y = train_x[start:end], train_y[start:end]
+            loss = 0
+            accuracy = 0
+            for bach_start in range(0, train_x.shape[0], batch_size):
+                batch_end = bach_start + batch_size
+                batch_x, batch_y = train_x[bach_start:batch_end], train_y[bach_start:batch_end]
 
-            # forward
-            prediction = self._forward(batch_x)
+                # forward
+                prediction = self._forward(batch_x)
 
-            # calculating error
-            expected = np.eye(self.configuration.layers[-1])[batch_y - 1]
+                # calculating error
+                expected = np.eye(self.configuration.layers[-1])[batch_y - 1]
 
-            loss = nll_loss_matrix(expected, prediction)
-            accuracy = self._accuracy(prediction, expected)
+                loss += nll_loss_matrix(expected, prediction)
+                accuracy += self._accuracy(prediction, expected)
 
-            # Backward
-            self._backward(prediction, expected)
-            self._update()
+                # Backward
+                self._backward(prediction, expected)
+                self._update()
+
             print(f"#{epoch}: {loss=}, {accuracy=}")
             # Save the module.
             # self._save_model(epoch)
