@@ -65,8 +65,8 @@ class FullyConnected(Layer):
         self._init_gradients()
 
     def _init_gradients(self):
-        self.weights_gradient = np.zeros(self.weights.shape)
-        self.biases_gradient = np.zeros(self.biases.shape)
+        self.weights_gradient = np.zeros_like(self.weights)
+        self.biases_gradient = np.zeros_like(self.biases)
 
     def forward(self, input: np.ndarray):
         self.input = input
