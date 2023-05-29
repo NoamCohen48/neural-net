@@ -97,6 +97,7 @@ class NeuralNetwork:
                 for layer in reversed(self.layers):
                     grad = layer.backward(grad)
                     layer.update(self.configuration.learning_rate)
+                print(f"finished batch {bach_start}")
 
             print(f"#{epoch}: {loss=}, accuracy={accuracy/train_x.shape[0]}")
             # Save the module.

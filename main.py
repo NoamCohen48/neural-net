@@ -7,7 +7,7 @@ from neuralNetwork import NeuralNetwork
 
 def main():
     print("version 1.0.1")
-    configuration = Configuration(0.1, 100, (3072, 1024, 10), None, "test")
+    configuration = Configuration(0.1, 100, (3072, 1024, 10), 41, "test")
     model = NeuralNetwork(configuration)
     X, Y = read_file2(sys.argv[1])
     model.train(X, Y)

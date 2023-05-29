@@ -73,6 +73,6 @@ def nll_loss(y_true, y_pred):
     return loss
 
 def nll_loss_matrix(y_true, y_pred):
-    # np.clip(y_pred, 1e-10, 1. - 1e-10)
+    np.clip(y_pred, 1e-5, 1. - 1e-5)
     loss = -np.sum(y_true * np.log(y_pred))
     return loss
