@@ -25,16 +25,16 @@ class Layer:
 
 @dataclass(slots=True)
 class Softmax(Layer):
-    input: np.ndarray | None = field(init=False, default=None)
-    def forward(self, input: np.ndarray):
-        self.input = input
+    output: np.ndarray | None = field(init=False, default=None)
 
+    def forward(self, input: np.ndarray):
         probs = np.exp(input - np.max(input, axis=1, keepdims=True))
         probs /= np.sum(probs, axis=1, keepdims=True)
+        self.output = probs
         return probs
 
     def backward(self, expected):
-        return self.input - expected
+        return self.output - expected
 
     def update(self, learning_rate):
         return
@@ -44,6 +44,7 @@ class Softmax(Layer):
 
     def load(self, pop: Callable[[], np.ndarray]) -> None:
         return
+
 
 @dataclass(slots=True)
 class Loss:

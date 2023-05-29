@@ -39,7 +39,7 @@ def softmax(x):
     x_max = np.max(x)
     sub = np.subtract(x, x_max)
     ex = np.exp(sub)
-    return ex / np.sum(ex)
+    return ex / np.sum(ex, axis=1, keepdims=True)
 
 
 def softmax2(x):
@@ -73,6 +73,6 @@ def nll_loss(y_true, y_pred):
     return loss
 
 def nll_loss_matrix(y_true, y_pred):
-    y_pred = np.clip(y_pred, 1e-10, 1. - 1e-10)
+    # y_pred = np.clip(y_pred, 1e-10, 1. - 1e-10)
     loss = -np.sum(y_true * np.log(y_pred))
     return loss
