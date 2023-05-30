@@ -8,6 +8,7 @@ import numpy.random
 from numpy.random import default_rng, Generator
 
 from csv_manager import save_arrays, load_arrays
+from layers import sigmoid
 from layers import *
 from configuration import Configuration
 from math_functions import *
@@ -32,7 +33,7 @@ class NeuralNetwork:
         for input_size, output_size in itertools.pairwise(self.configuration.layers):
             self.layers.append(FullyConnected(input_size, output_size, self.random_generator))
             self.layers.append(
-                ReLU()
+                Sigmoid()
             )
 
         self.layers.pop()

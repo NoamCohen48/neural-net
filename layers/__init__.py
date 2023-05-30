@@ -1,4 +1,5 @@
 from .layer import Layer
+from .sigmoid import Sigmoid
 from .relu import ReLU
 from .dropout import Dropout
 from .sotmax import Softmax
@@ -10,4 +11,5 @@ __all__ = [
     "Dropout",
     "Softmax",
     "FullyConnected",
+    "Sigmoid",
 ]
