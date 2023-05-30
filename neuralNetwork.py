@@ -61,16 +61,18 @@ class NeuralNetwork:
 
     def _accuracy(self, predicted, expected):
         predicted_labels = np.argmax(predicted, axis=1)
+        print(f"predicted={predicted_labels}")
         return np.sum(predicted_labels == expected)
 
-    def train(self, train_x, train_y):
+    def train(self, train_x, train_y, validation_x, validation_y):
         print("started training")
         train_x, train_y = self._pre_processing(train_x, train_y)
         batch_size = 200
+        evaluation_every = 2
+        learning_rate_reduction = 0.8
         learning_rate = self.configuration.learning_rate
         for epoch in range(self.configuration.epochs):
             epoch_loss, epoch_accuracy = 0, 0
-            learning_rate *= 0.9
             for batch_index, bach_start in enumerate(range(0, train_x.shape[0], batch_size)):
                 # ---- creating batch ----
                 batch_end = bach_start + batch_size
@@ -95,11 +97,23 @@ class NeuralNetwork:
                 for layer in reversed(self.layers):
                     layer.update(learning_rate)
 
-                print(f"-epoch #{epoch}, batch #{batch_index}\n\tbatch loss={batch_loss}\n\tbatch accuracy={batch_accuracy / batch_size * 100}")
+                print(f"-epoch #{epoch}, batch #{batch_index}\n\tbatch loss={batch_loss / batch_size}\n\tbatch accuracy={batch_accuracy / batch_size * 100}")
 
-            print(f"-epoch:{epoch}\n\tepoch loss={epoch_loss}\n\tbatch accuracy={epoch_accuracy / train_x.shape[0] * 100}")
+            print(f"-epoch:{epoch}\n\tepoch loss={epoch_loss / train_x.shape[0]}\n\tbatch accuracy={epoch_accuracy / train_x.shape[0] * 100}")
+            learning_rate *= learning_rate_reduction
             # Save the module.
             # self._save_model(epoch)
+
+            if epoch % evaluation_every == 0:
+                # ---- forward ----
+                prediction = validation_x
+                for layer in self.layers:
+                    prediction = layer.forward(prediction)
+
+                # ---- error ----
+                loss = nll_loss(validation_y, prediction)
+                accuracy = self._accuracy(prediction, batch_y)
+                print(f"-validation\nloss={loss}\naccuracy={accuracy}")
 
     def _save_model(self, epoch_number: int):
         path = Path(self.configuration.save_path, f"epoch{epoch_number}")

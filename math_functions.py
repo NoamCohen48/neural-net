@@ -75,7 +75,7 @@ def binary_cross_entropy_derivative(y_true, y_pred):
 
 def nll_loss(y_true, y_pred):
     # y_pred = np.clip(y_pred, 1e-7, 1. - 1e-7)
-    loss = -np.sum(np.log(y_pred[np.arange(y_pred.shape[0]), y_true - 1])) / y_pred.shape[0]
+    loss = -np.sum(np.log(y_pred[np.arange(y_pred.shape[0]), y_true - 1]))
     return loss
 
 
