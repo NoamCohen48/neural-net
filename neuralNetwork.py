@@ -61,12 +61,13 @@ class NeuralNetwork:
 
     def _accuracy(self, predicted, expected):
         predicted_labels = np.argmax(predicted, axis=1)
-        print(f"predicted={predicted_labels}")
+        # print(f"predicted={predicted_labels}")
         return np.sum(predicted_labels == expected)
 
     def train(self, train_x, train_y, validation_x, validation_y):
         print("started training")
         train_x, train_y = self._pre_processing(train_x, train_y)
+        validation_x, validation_y = self._pre_processing(validation_x, validation_y)
         batch_size = 200
         evaluation_every = 2
         learning_rate_reduction = 0.8
