@@ -35,6 +35,12 @@ def relu_derivative2(x, dout):
     return np.where(x > 0, dout, 0)
 
 
+def relu_derivative3(x, dout):
+    dx = dout.copy()
+    dx[x <= 0] = 0
+    return dx
+
+
 def softmax(x):
     x_max = np.max(x)
     sub = np.subtract(x, x_max)
@@ -68,11 +74,12 @@ def binary_cross_entropy_derivative(y_true, y_pred):
 
 
 def nll_loss(y_true, y_pred):
-    np.clip(y_pred, 1e-10, 1. - 1e-10)
-    loss = -np.sum(y_true * np.log(y_pred))
+    # y_pred = np.clip(y_pred, 1e-7, 1. - 1e-7)
+    loss = -np.sum(np.log(y_pred[:, y_true - 1])) / y_pred.shape[0]
     return loss
 
+
 def nll_loss_matrix(y_true, y_pred):
-    # y_pred = np.clip(y_pred, 1e-10, 1. - 1e-10)
-    loss = -np.sum(y_true * np.log(y_pred))
+    # y_pred = np.clip(y_pred, 1e-7, 1. - 1e-7)
+    loss = -np.sum(np.log(y_pred * y_true))
     return loss

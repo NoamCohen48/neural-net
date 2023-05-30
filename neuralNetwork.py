@@ -20,7 +20,6 @@ class NeuralNetwork:
     configuration: Configuration = field()
     layers: list[Layer] = field(init=False, default_factory=list)
     random_generator: Generator = field(init=False)
-    loss: Loss = field(init=False)
 
     def __post_init__(self):
         if self.configuration.seed:
@@ -31,18 +30,13 @@ class NeuralNetwork:
             self.random_generator = default_rng(seed)
 
         for input_size, output_size in itertools.pairwise(self.configuration.layers):
-            self.layers.append(FullyConnected(
-                self.random_generator.normal(0, 0.01, (output_size, input_size)),
-                self.random_generator.normal(0, 0.01, (output_size,))
-            ))
+            self.layers.append(FullyConnected(input_size, output_size, self.random_generator))
             self.layers.append(
-                Activation(relu, relu_derivative2)
+                Activation(relu3, relu_derivative3)
             )
 
         self.layers.pop()
         self.layers.append(Softmax())
-
-        self.loss = Loss(nll_loss, mean_squared_error_derivative)
 
     def _pre_processing(self, X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         # X_new = X.reshape(*X.shape, 1)
@@ -67,17 +61,22 @@ class NeuralNetwork:
 
     def _accuracy(self, predicted, expected):
         predicted_labels = np.argmax(predicted, axis=1)
-        expected_labels = np.argmax(expected, axis=1)
-        return np.sum(predicted_labels == expected_labels)
+        print(f"predicted: {predicted_labels}")
+        # expected_labels = np.argmax(expected, axis=1)
+        return np.sum(predicted_labels == expected)
 
     def train(self, train_x, train_y):
         print("started training")
         train_x, train_y = self._pre_processing(train_x, train_y)
         batch_size = 200
+        step = 0
         for epoch in range(self.configuration.epochs):
             loss = 0
             accuracy = 0
             for bach_start in range(0, train_x.shape[0], batch_size):
+                step += 1
+                lr = self.configuration.learning_rate * 0.9 ** (step // 50)
+
                 # ---- creating batch ----
                 batch_end = bach_start + batch_size
                 batch_x, batch_y = train_x[bach_start:batch_end], train_y[bach_start:batch_end]
@@ -88,8 +87,9 @@ class NeuralNetwork:
                     prediction = layer.forward(prediction)
 
                 # ---- error ----
-                expected = np.eye(self.configuration.layers[-1])[batch_y - 1]
-                loss += nll_loss_matrix(expected, prediction)
+                # expected = np.eye(self.configuration.layers[-1])[batch_y - 1]
+                expected = batch_y
+                loss += nll_loss(expected, prediction)
                 accuracy += self._accuracy(prediction, expected)
 
                 # ---- backward ----
@@ -98,11 +98,11 @@ class NeuralNetwork:
                     grad = layer.backward(grad)
 
                 for layer in reversed(self.layers):
-                    layer.update(self.configuration.learning_rate)
+                    layer.update(lr)
 
                 print(f"finished batch {bach_start}")
 
-            print(f"#{epoch}: {loss=}, accuracy={accuracy/train_x.shape[0]}")
+            print(f"#{epoch}: {loss=}, accuracy={accuracy / train_x.shape[0]}")
             # Save the module.
             # self._save_model(epoch)
 
@@ -147,9 +147,6 @@ class NeuralNetwork:
                 for x, y in zip(batch_x, batch_y):
                     # Forward
                     output = self._forward(x)
-
-                    # Accumulate error for the batch
-                    batch_error += self.loss.function(y, output)
 
                     # Backward
                     self._backward(y, output)
